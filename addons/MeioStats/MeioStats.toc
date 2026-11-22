@@ -1,0 +1,20 @@
+## Interface: 16001
+## Title: MeioStats
+## Notes: Levelling times and XP per hour, loot luck against drop rates, money per item. /stats
+## Version: 1.0.0
+## Author: MeioNeiz
+## X-Website: https://github.com/MeioNeiz/MeioStats
+## X-License: MIT
+## OptionalDeps: Questie, TradeSkillMaster, Meionomics
+# KafStatsCharDB: the name before 1.0.0, read once and moved over
+## SavedVariablesPerCharacter: MeioStatsCharDB, KafStatsCharDB
+
+Core.lua
+Level.lua
+Loot.lua
+Money.lua
+Widgets.lua
+UI.lua
+UILevel.lua
+UILoot.lua
+UIMoney.lua

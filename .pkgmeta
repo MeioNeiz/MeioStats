@@ -1,0 +1,8 @@
+package-as: MeioStats
+
+move-folders:
+  MeioStats/addons/MeioStats: MeioStats
+
+ignore:
+  - docs
+  - README.md
