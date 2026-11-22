@@ -206,11 +206,11 @@ function W.ItemRow(parent, w, h)
   f.right:SetPoint("TOPRIGHT", -4, -2)
   f.right2 = W.Text(f, "GameFontHighlightSmall", "RIGHT")
   f.right2:SetPoint("BOTTOMRIGHT", -4, 2)
-  f:SetScript("OnEnter", function(self)
-    if not self.itemID then return end
-    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetItemByID(self.itemID)
-    if self.extra then self.extra(GameTooltip) end
+  f.itemID = nil
+  f:SetScript("OnEnter", function()
+    if not f.itemID then return end
+    GameTooltip:SetOwner(f, "ANCHOR_RIGHT")
+    GameTooltip:SetItemByID(f.itemID)
     GameTooltip:Show()
   end)
   f:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -233,5 +233,5 @@ function W.ItemName(id)
 end
 
 function W.ItemIcon(id)
-  return C_Item.GetItemIconByID and C_Item.GetItemIconByID(id) or GetItemIcon(id)
+  return C_Item.GetItemIconByID(id)
 end

@@ -1,88 +1,44 @@
-# MeioStats
+# Meio Stats
 
-A stats window for **WoW Forever**: how long each level took and how fast you're levelling
-now, whether your quest drops are lucky or unlucky against their real drop rate, and what
-you've earned and spent per item.
+How fast you level, how lucky your quest drops are, and what you earn, in one window.
 
-![Levelling tab](docs/level.png)
+![Before: an hour of levelling is XP lines in chat and /played; with Meio Stats, the Levelling
+tab with XP per hour, time to the next level, where the XP came from and played time per
+level](docs/before-after.png)
 
 ## What it does
 
-`/stats` opens a window with three tabs.
+Type `/stats` for a window with three tabs. It records from the moment you install it.
 
-**Levelling**
+- Levelling: XP per hour now and this session, time to the next level, XP from kills,
+  rested, quests and exploring, and how long each level took
+- Loot luck: kills and loot per mob, and quest drops against their real drop rate ("very
+  lucky, top 2%"), with Questie installed
+- Money: what you sold and bought per item, with profit, and the last 30 days, from
+  TradeSkillMaster's ledger
+- Gold gained or lost this session
+- Questie, TradeSkillMaster and [Meionomics](https://github.com/MeioNeiz/Meionomics) (profit
+  on crafted items) are optional: without them the rest still works
 
-- Your XP bar with rested XP, and the XP per hour over the last 15 minutes and over the
-  whole session.
-- Time to the next level at that rate, and roughly how many kills it is at this level's
-  average kill XP.
-- Where your XP came from (kills, rested bonus, quests, exploration), for this level and for
-  this session, and a chart of XP per 5 minutes this session.
-- Played time per level, and the real time from ding to ding, from the level the addon was
-  installed at onwards. Played time is exact: it comes from `/played`, which the addon asks
-  for quietly at login and on each level up.
+Settings: Esc > Options > AddOns > MeioStats, or `/stats settings`.
 
-**Loot luck**
-
-![Loot luck tab](docs/loot.png)
-
-- Counts your kills per kind of mob and what each corpse dropped.
-- For quest items with a known drop rate (from Questie's database), compares the drops you
-  got with what that rate predicts, and says how lucky you were: "lucky, top 7.8%" means
-  only 7.8% of players with your kills would have seen this many drops or more. Kills only
-  count towards an item while its quest is in your log, since quest items don't drop
-  otherwise.
-- Everything else you've looted, with the rate you've seen per kill.
-
-**Money**
-
-![Money tab](docs/money.png)
-
-- Auction and vendor sales (after the AH cut), purchases, repairs and fees, and the net,
-  from TradeSkillMaster's accounting for every character on your realm.
-- Earned against spent per day over the last 30 days.
-- Every item you've sold, by revenue, with the profit against what you paid for it (or, with
-  Meionomics, against today's cost of its materials); and what you've bought and never sold.
-- Gold gained or lost this session.
-
-## Commands
-
-| Command | |
-|---|---|
-| `/stats` | Open or close the window |
-| `/stats level` (or `xp`) | Open on the Levelling tab |
-| `/stats loot` (or `luck`) | Open on the Loot luck tab |
-| `/stats money` (or `gold`) | Open on the Money tab |
-| `/stats help` | List the commands |
-
-`/meiostats` works too, if another addon already uses `/stats`.
+- `/stats`: open or close the window (`/meiostats` too)
+- `/stats level`, `/stats loot`, `/stats money`: open on that tab
+- `/stats reset`: put the window back in the middle
+- `/stats help`: all of these in chat
 
 ## Install
 
-Download this repository (green **Code** button, **Download ZIP**), and copy the
-`addons\MeioStats` folder into `World of Warcraft\_forever_\Interface\AddOns`, so that
-you end up with `AddOns\MeioStats\MeioStats.toc`. Restart WoW fully (a `/reload` doesn't
-find new addons).
+Use your addon manager (CurseForge, Wago), or unzip a GitHub release into
+`World of Warcraft\_forever_\Interface\AddOns` and restart WoW fully.
 
-Optional, each adds a tab's data:
+## Feedback
 
-- [Questie](https://www.curseforge.com/wow/addons/questie): drop rates for the Loot luck
-  tab. Without it, kills and loot are still counted.
-- [TradeSkillMaster](https://tradeskillmaster.com): its accounting is the Money tab's
-  source. Without it, only this session's gold change shows.
-- [Meionomics](https://github.com/MeioNeiz/Meionomics): profit for crafted items you sell,
-  against the cost of their materials. Meionomics also shows this addon's per-item totals in
-  its tooltips.
+Bugs and ideas: [GitHub issues](https://github.com/MeioNeiz/MeioStats/issues)
 
-## Limits
+## More Meio addons
 
-- Levelling and loot are recorded per character from the moment the addon is installed;
-  nothing earlier is known, so the first level shows played time only.
-- WoW Forever has no combat log for addons, so a kill is counted from its XP message or from
-  looting the corpse. Mobs that give no XP and aren't looted are missed.
-- Drop rates only exist for quest items in Questie's database.
-- TradeSkillMaster saves its ledger when you log out, so the Money tab shows sales up to the
-  start of this session.
+[Meio TrainerCompare](https://www.curseforge.com/wow/addons/trainercompare) | [Meio AutoRank](https://www.curseforge.com/wow/addons/meio-autorank) | [Meio MeterHover](https://www.curseforge.com/wow/addons/meterhover) | [Meio Map](https://addons.wago.io/addons/meiomap) | [Meio Alts](https://addons.wago.io/addons/meioalts) | [Meio DPS](https://addons.wago.io/addons/meiodps) | [Meio Plates](https://addons.wago.io/addons/meioplates)
 
 ## Licence
 

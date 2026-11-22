@@ -50,16 +50,9 @@ end
 
 local function QuestLogIDs()
   local ids = {}
-  if C_QuestLog and C_QuestLog.GetNumQuestLogEntries and C_QuestLog.GetInfo then
-    for i = 1, C_QuestLog.GetNumQuestLogEntries() do
-      local info = C_QuestLog.GetInfo(i)
-      if info and not info.isHeader and info.questID then ids[#ids + 1] = info.questID end
-    end
-  elseif GetNumQuestLogEntries then
-    for i = 1, GetNumQuestLogEntries() do
-      local _, _, _, header, _, _, _, id = GetQuestLogTitle(i)
-      if not header and id then ids[#ids + 1] = id end
-    end
+  for i = 1, C_QuestLog.GetNumQuestLogEntries() do
+    local info = C_QuestLog.GetInfo(i)
+    if info and not info.isHeader and info.questID then ids[#ids + 1] = info.questID end
   end
   return ids
 end
@@ -118,7 +111,7 @@ local function Remember(unit)
   local guid = UnitGUID(unit)
   local id = K.NpcID(guid)
   local name = id and UnitName(unit)
-  if id and K.Usable(name) then
+  if id and name and (not canaccessvalue or canaccessvalue(name)) then
     nameToID[name] = id
     if db.npcs[id] then db.npcs[id].name = name end
   end

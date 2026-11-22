@@ -2,16 +2,12 @@
 -- (UI*.lua). Public for other addons: MeioStats.Money.ItemTotals(itemID).
 local addonName, K = ...
 MeioStats = K
--- the name before 1.0.0, still called by Meionomics
-KafStats = K
-
-K.ACCENT = "|cff66bbff"
 
 -- scenarios swap in fixed clocks
 function K.Now() return time() end
 function K.Clock() return GetTime() end
 
-function K.Print(msg) DEFAULT_CHAT_FRAME:AddMessage(K.ACCENT .. "MeioStats|r: " .. msg) end
+function K.Print(msg) DEFAULT_CHAT_FRAME:AddMessage("|cffb090ffMeioStats:|r " .. msg) end
 
 -- secret values (combat chat, some unit info on this client) can't be compared or parsed
 local canaccess = canaccessvalue or function() return true end
@@ -89,29 +85,65 @@ K.On("ADDON_LOADED", function(name)
   for _, fn in ipairs(loaders) do fn(K.db) end
 end)
 
+local function Cmd(text) return "|cffffd100" .. text .. "|r" end
+
 local HELP = {
-  "/stats: open or close the window, on the last tab",
-  "/stats level (or xp): levelling times, XP per hour, XP sources",
-  "/stats loot (or luck): quest drops against their drop rate, everything looted",
-  "/stats money (or gold): sales, purchases and profit from TSM's ledger",
+  { "/stats", "open or close the window, on the last tab" },
+  { "/stats level||xp", "levelling: played time per level, XP per hour, where XP came from" },
+  { "/stats loot||luck", "loot luck: quest drops against Questie's drop rates, all loot" },
+  { "/stats money||gold", "money: sales, purchases and profit from TSM's ledger" },
+  { "/stats reset", "put the window back in the middle of the screen" },
 }
 
-K.commands = {
-  help = function()
-    for _, line in ipairs(HELP) do K.Print(line) end
-  end,
+local function Help()
+  K.Print("levelling times, loot luck and money per item")
+  for _, h in ipairs(HELP) do
+    DEFAULT_CHAT_FRAME:AddMessage("  " .. Cmd(h[1]) .. " - " .. h[2])
+  end
+  DEFAULT_CHAT_FRAME:AddMessage("  Settings: Esc > Options > AddOns > MeioStats ("
+    .. Cmd("/stats settings") .. ")")
+end
+
+function K.ResetWindow()
+  K.UI.ResetPosition()
+  K.Print("window moved back to the middle of the screen")
+end
+
+local commands = {
+  help = Help,
+  ["?"] = Help,
+  reset = K.ResetWindow,
+  settings = function() K.OpenSettings() end,
+  options = function() K.OpenSettings() end,
 }
 
-SLASH_MEIOSTATS1 = "/stats"
-SLASH_MEIOSTATS2 = "/meiostats"
-SlashCmdList.MEIOSTATS = function(msg)
+local function Slash(msg)
   local cmd, rest = (msg or ""):match("^%s*(%S*)%s*(.-)%s*$")
   cmd = cmd:lower()
-  local fn = K.commands[cmd]
+  local fn = commands[cmd]
   if fn then return fn(rest) end
   if cmd ~= "" and not K.UI.Tab(cmd) then
-    K.Print("unknown command '" .. cmd .. "', try /stats help")
-    return
+    K.Print('unknown command "' .. cmd .. '"')
+    return Help()
   end
   K.UI.Toggle(K.UI.Tab(cmd))
 end
+
+SLASH_MEIOSTATS1 = "/stats"
+SLASH_MEIOSTATS2 = "/meiostats"
+SlashCmdList.MEIOSTATS = Slash
+
+-- KafStats (MeioStats before 1.0.0) also claims /stats, and which addon wins a shared slash
+-- word is down to table order. Point its command at ours so /stats always opens MeioStats.
+local function TakeOverKafStats()
+  local loaded = C_AddOns and C_AddOns.IsAddOnLoaded or IsAddOnLoaded
+  if not (loaded and loaded("KafStats")) then return end
+  SlashCmdList.KAFSTATS = Slash
+  if hash_SlashCmdList then hash_SlashCmdList["/STATS"] = nil end
+  K.Print("the old KafStats addon is still enabled; disable it in the AddOns list"
+    .. " (MeioStats replaces it)")
+end
+K.On("PLAYER_LOGIN", TakeOverKafStats)
+
+-- minimap addon compartment (.toc AddonCompartmentFunc)
+function MeioStats_OnAddonCompartmentClick() K.UI.Toggle() end

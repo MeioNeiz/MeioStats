@@ -2,6 +2,9 @@
 ## Title: MeioStats
 ## Notes: Levelling times and XP per hour, loot luck against drop rates, money per item. /stats
 ## Version: 1.0.0
+## Category: Meio
+## IconTexture: Interface\Icons\INV_Misc_PocketWatch_01
+## AddonCompartmentFunc: MeioStats_OnAddonCompartmentClick
 ## Author: MeioNeiz
 ## X-Website: https://github.com/MeioNeiz/MeioStats
 ## X-License: MIT
@@ -14,6 +17,7 @@ Level.lua
 Loot.lua
 Money.lua
 Widgets.lua
+Settings.lua
 UI.lua
 UILevel.lua
 UILoot.lua

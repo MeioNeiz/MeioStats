@@ -44,19 +44,45 @@ function UI.Select(key)
   Refresh()
 end
 
+-- K.db.pos = { point, relPoint, x, y } against UIParent; nil = centred
+local function Place()
+  local pos = K.db.pos
+  frame:ClearAllPoints()
+  if pos and pos.point then
+    frame:SetPoint(pos.point, UIParent, pos.relPoint, pos.x, pos.y)
+  else
+    frame:SetPoint("CENTER")
+  end
+end
+
+local function SavePosition()
+  local point, _, relPoint, x, y = frame:GetPoint(1)
+  if point then K.db.pos = { point = point, relPoint = relPoint, x = x, y = y } end
+end
+
+function UI.ResetPosition()
+  K.db.pos = nil
+  if frame then Place() end
+end
+
 local function Create()
   frame = CreateFrame("Frame", "MeioStatsFrame", UIParent, "ButtonFrameTemplate")
   ButtonFrameTemplate_HidePortrait(frame)
   frame:SetSize(UI.W, UI.H)
-  frame:SetPoint("CENTER")
-  frame:SetFrameStrata("HIGH")
+  Place()
+  frame:SetFrameStrata("MEDIUM") -- with toplevel, comes in front of other windows when clicked
   frame:SetToplevel(true)
   frame:EnableMouse(true)
   frame:SetMovable(true)
   frame:SetClampedToScreen(true)
   frame:RegisterForDrag("LeftButton")
   frame:SetScript("OnDragStart", function(self) self:StartMoving() end)
-  frame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
+  frame:SetScript("OnDragStop", function(self)
+    self:StopMovingOrSizing()
+    -- saved in our SV: the client's layout cache only restores frames that exist at login
+    self:SetUserPlaced(false)
+    SavePosition()
+  end)
   if frame.SetTitle then
     frame:SetTitle((UnitName("player") or "") .. " - Stats")
   end
@@ -85,7 +111,8 @@ local function Create()
     frame.tabs[i] = t
   end
   PanelTemplates_SetNumTabs(frame, #TABS)
-  frame:SetScript("OnShow", function()
+  frame:SetScript("OnShow", function(self)
+    self:Raise()
     ticker = ticker or C_Timer.NewTicker(1, function()
       if current == "level" then Refresh() end
     end)

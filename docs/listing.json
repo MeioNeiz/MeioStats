@@ -1,0 +1,29 @@
+{
+  "title": "Meio Stats",
+  "summary": "One /stats window: XP per hour and time per level, quest drop luck against real drop rates, and money made per item.",
+  "cfCategory": "Quests & Leveling",
+  "cfExtra": [
+    "Auction & Economy"
+  ],
+  "wagoCategories": [
+    "Quests & Leveling",
+    "Auction & Economy"
+  ],
+  "gallery": [
+    {
+      "file": "before-after.png",
+      "title": "Before and after",
+      "description": "An hour of levelling: XP lines and /played in chat, then the Levelling tab with XP per hour, time to level and time per level"
+    },
+    {
+      "file": "loot.png",
+      "title": "Loot luck",
+      "description": "Quest drops against their drop rate, one very lucky and one very unlucky, then the rest of the loot per kill"
+    },
+    {
+      "file": "money.png",
+      "title": "Money",
+      "description": "A month of sales from TradeSkillMaster's ledger: earned and spent per day, and each item sold with its profit"
+    }
+  ]
+}

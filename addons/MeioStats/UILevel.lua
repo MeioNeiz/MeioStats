@@ -83,7 +83,7 @@ local function Build(p)
   Header(p.hist, "Played time per level")
   p.histKey = W.Text(p.hist, "GameFontDisableSmall", "RIGHT")
   p.histKey:SetPoint("TOPRIGHT", -8, -8)
-  p.histKey:SetText("bar: played  |  right: played, real time")
+  p.histKey:SetText("played  |cff808080real time since the ding|r")
   p.rows = {}
   for i = 1, HISTORY_ROWS do
     local r = CreateFrame("Frame", nil, p.hist)

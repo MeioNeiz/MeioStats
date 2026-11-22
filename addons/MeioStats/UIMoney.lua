@@ -44,10 +44,10 @@ local function Build(p)
   p.listTitle = W.Text(p.list, "GameFontNormal")
   p.listTitle:SetPoint("TOPLEFT", 8, -6)
   p.listHint = W.Text(p.list, "GameFontDisableSmall", "RIGHT")
-  p.listHint:SetPoint("TOPRIGHT", -96, -8)
+  p.listHint:SetPoint("TOPRIGHT", -112, -8)
   p.mode = "sold"
   p.toggle = CreateFrame("Button", nil, p.list, "UIPanelButtonTemplate")
-  p.toggle:SetSize(84, 20)
+  p.toggle:SetSize(100, 20)
   p.toggle:SetPoint("TOPRIGHT", -6, -3)
   p.toggle:SetScript("OnClick", function()
     p.mode, p.offset = p.mode == "sold" and "bought" or "sold", 0
@@ -69,6 +69,8 @@ local function Build(p)
     K.UI.pages.money.Refresh(p)
   end)
   p.empty = W.Text(p.list, "GameFontDisable", "CENTER")
+  p.empty:SetWordWrap(true)
+  p.empty:SetWidth(w - 40)
   p.empty:SetPoint("CENTER", 0, -10)
 end
 
@@ -81,14 +83,17 @@ end
 
 local function Refresh(p)
   local t = M.Totals()
+  local ledger = M.HasLedger()
+  local function Coins(c) return ledger and K.Coins(c) or nil end
   local net = t.revenue + t.income - t.spent - t.expense
   local sessionChange = M.SessionChange()
-  p.tiles[1]:Set("AH sales", K.Coins(t.ahRevenue), "after the AH cut")
-  p.tiles[2]:Set("Vendor sales", K.Coins(t.vendorRevenue), "")
-  p.tiles[3]:Set("Bought", K.Coins(t.spent), t.expense > 0 and ("+ " .. K.Coins(t.expense)
-    .. " repairs, fees") or "")
-  p.tiles[4]:Set("Net", W.Paint(net >= 0 and C.good or C.bad, K.Coins(net, true)),
-    t.first < math.huge and ("since " .. date("%d %b", t.first)) or "no TSM ledger")
+  local needs = not ledger and "needs TSM" or nil
+  p.tiles[1]:Set("AH sales", Coins(t.ahRevenue), needs or "after the AH cut")
+  p.tiles[2]:Set("Vendor sales", Coins(t.vendorRevenue), needs)
+  p.tiles[3]:Set("Bought", Coins(t.spent), needs or (t.expense > 0 and ("+ "
+    .. K.Coins(t.expense) .. " repairs, fees") or ""))
+  p.tiles[4]:Set("Net", ledger and W.Paint(net >= 0 and C.good or C.bad, K.Coins(net, true)),
+    needs or (t.first < math.huge and ("since " .. date("%d %b", t.first)) or "nothing yet"))
   local change = sessionChange and W.Paint(sessionChange >= 0 and C.good or C.bad,
     K.Coins(sessionChange, true))
   p.tiles[5]:Set("This session", change, "gold change")
@@ -97,7 +102,8 @@ local function Refresh(p)
   local peak = 0
   for _, d in ipairs(days) do peak = math.max(peak, d[1], d[2]) end
   p.cols:SetData(days, { C.good, C.bad }, peak, 4)
-  p.daysPeak:SetText(peak > 0 and ("best day " .. K.Coins(peak)) or "nothing in 30 days")
+  p.daysPeak:SetText(peak > 0 and ("best day " .. K.Coins(peak))
+    or (ledger and "nothing in 30 days" or ""))
 
   local list = p.mode == "sold" and M.TopSold() or M.TopBought()
   p.count = #list
@@ -106,7 +112,8 @@ local function Refresh(p)
     or ("Bought, never sold (%d)"):format(#list))
   p.listHint:SetText(#list > ROWS and ("%d-%d, scroll for more"):format(p.offset + 1,
     math.min(#list, p.offset + ROWS)) or "")
-  p.toggle:SetText(p.mode == "sold" and "Bought" or "Sold")
+  p.toggle:SetText(p.mode == "sold" and "Show bought" or "Show sold")
+  p.toggle:SetShown(ledger)
   local top = list[1] and (p.mode == "sold" and list[1].r.revenue or list[1].r.spent) or 1
   for i, row in ipairs(p.rows) do
     local e = list[p.offset + i]
@@ -136,8 +143,10 @@ local function Refresh(p)
       end
     end
   end
-  local none = M.HasLedger() and "Nothing in TSM's ledger yet"
-    or "Sales and purchases come from TradeSkillMaster's accounting, which isn't loaded"
+  local none = ledger and (p.mode == "sold" and "Nothing sold in TSM's ledger yet"
+    or "Nothing bought that wasn't sold again")
+    or "Needs TradeSkillMaster: sales and purchases come from its ledger.\n"
+    .. "The This session tile works without it."
   p.empty:SetText(#list == 0 and none or "")
 end
 

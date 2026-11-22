@@ -117,18 +117,26 @@ local function Refresh(p)
   for _, e in ipairs(rated) do
     drops, expected = drops + e.luck.drops, expected + e.luck.expected
   end
-  local rares = 0
+  local rares, qty = 0, 0
   for _, e in ipairs(obs) do
     local _, _, q = C_Item.GetItemInfo(e.id)
-    if q and q >= 2 then rares = rares + e.drops end
+    if q and q >= 2 then rares = rares + e.qty end
+    qty = qty + e.qty
   end
   p.tiles[1]:Set("Kills counted", K.Count(t.kills), ("%d kinds of mob"):format(t.mobs))
-  p.tiles[2]:Set("Items looted", K.Count(#obs), ("%d green or better"):format(rares))
-  p.tiles[3]:Set("Quest drops", K.Count(drops), ("expected %.1f"):format(expected))
+  p.tiles[2]:Set("Items looted", K.Count(qty), ("%d kinds, %d green or better"):format(#obs,
+    rares))
+  local rates = L.HasRates()
+  if #rated > 0 then
+    p.tiles[3]:Set("Quest drops", K.Count(drops), ("expected %.1f"):format(expected))
+  else
+    p.tiles[3]:Set("Quest drops", nil, rates and "none yet" or "needs Questie")
+  end
   local diff = drops - expected
   local luck = #rated > 0 and W.Paint(diff >= 0 and C.good or C.bad,
     ("%+.1f drops"):format(diff)) or nil
-  p.tiles[4]:Set("Overall luck", luck, luck and "vs drop rates" or "no quest drops yet")
+  p.tiles[4]:Set("Overall luck", luck, luck and "vs drop rates"
+    or (rates and "kill mobs for a quest item" or "needs Questie"))
 
   Page(p.rated, rated, RATED_ROWS)
   for i, row in ipairs(p.rated.rows) do
@@ -145,8 +153,8 @@ local function Refresh(p)
       row.gauge:Set(luck.score)
     end
   end
-  local none = L.HasRates() and "Kill mobs for a quest item and its drop luck shows here"
-    or "Drop rates come from Questie, which isn't loaded"
+  local none = rates and "Kill mobs for a quest item and its drop luck shows here"
+    or "Needs Questie for drop rates. Quest items are still counted below."
   p.rated.empty:SetText(#rated == 0 and none or "")
 
   -- greens and better first, then by how often
