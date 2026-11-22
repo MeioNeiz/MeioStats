@@ -8,6 +8,8 @@
 ## Author: MeioNeiz
 ## X-Website: https://github.com/MeioNeiz/MeioStats
 ## X-License: MIT
+## X-Curse-Project-ID: 1824317
+## X-Wago-ID: BKpE9qGE
 ## OptionalDeps: Questie, TradeSkillMaster, Meionomics
 # KafStatsCharDB: the name before 1.0.0, read once and moved over
 ## SavedVariablesPerCharacter: MeioStatsCharDB, KafStatsCharDB
