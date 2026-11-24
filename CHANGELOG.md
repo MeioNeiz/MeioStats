@@ -1,5 +1,12 @@
 # Meio Stats
 
+## 1.0.1
+
+- Fixed: `/reload` no longer starts a new levelling session or resets this session's gold
+- Fixed: without Questie, quest items you were collecting were missing from the loot list
+- Money's daily bars use your local date (a sale just after midnight counted on the day
+  before)
+
 ## 1.0.0
 
 - First release: `/stats` window with Levelling (XP per hour, time to the next level, where

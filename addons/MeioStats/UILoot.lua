@@ -162,9 +162,12 @@ local function Refresh(p)
     local _, _, q = C_Item.GetItemInfo(e.id)
     e.quality = q or 1
   end
+  -- an item tracked for luck but with no drop rate (no Questie) isn't in the list above
+  local shown = {}
+  for _, e in ipairs(rated) do shown[e.id] = true end
   local list = {}
   for _, e in ipairs(obs) do
-    if e.quality >= 1 and not K.db.rated[e.id] then list[#list + 1] = e end
+    if e.quality >= 1 and not shown[e.id] then list[#list + 1] = e end
   end
   table.sort(list, function(a, b)
     if a.quality ~= b.quality then return a.quality > b.quality end

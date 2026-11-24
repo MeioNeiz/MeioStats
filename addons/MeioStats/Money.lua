@@ -24,7 +24,18 @@ local function Item(id)
   return r
 end
 
-local function Day(t) return math.floor(t / DAY) end
+-- day number of t's local date (noon of it, so a DST change can't shift it); per hour cache
+local dayOfHour = {}
+local function Day(t)
+  local h = math.floor(t / 3600)
+  local d = dayOfHour[h]
+  if not d then
+    local l = date("*t", t)
+    d = math.floor(time({ year = l.year, month = l.month, day = l.day, hour = 12 }) / DAY)
+    dayOfHour[h] = d
+  end
+  return d
+end
 
 local function Parse()
   items = {}
@@ -167,10 +178,12 @@ function M.Daily(n)
   return out
 end
 
--- live: gold change since login
+-- live: gold change since login; kept over /reload (K.db.loginMoney)
 local loginMoney
-K.On("PLAYER_ENTERING_WORLD", function()
-  loginMoney = loginMoney or GetMoney()
+K.On("PLAYER_ENTERING_WORLD", function(_, reload)
+  if loginMoney then return end
+  loginMoney = reload and K.db.loginMoney or GetMoney()
+  K.db.loginMoney = loginMoney
 end)
 function M.SessionChange() return loginMoney and GetMoney() - loginMoney end
 K.On("PLAYER_MONEY", function() if K.UI then K.UI.Dirty("money") end end)

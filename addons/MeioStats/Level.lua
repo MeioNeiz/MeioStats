@@ -221,10 +221,21 @@ end)
 
 K.On("PLAYER_ENTERING_WORLD", function(initial, reload)
   if session then return end
-  sessionStart = K.Clock()
-  session = { start = K.Now(), secs = 0, xp = 0, from = UnitLevel("player") }
-  table.insert(db.sessions, session)
-  while #db.sessions > MAX_SESSIONS do table.remove(db.sessions, 1) end
+  -- /reload carries on the session (K.Clock keeps running); db.live holds what isn't in it.
+  -- Matched by start: saved variables don't keep shared tables shared.
+  local live, lastSession = db.live, db.sessions[#db.sessions]
+  if reload and live and lastSession and lastSession.start == live.start then
+    session = lastSession
+    session.to = nil
+    sessionStart = K.Clock() - (session.secs or 0)
+    gains, L.buckets = live.gains or {}, live.buckets or {}
+  else
+    sessionStart = K.Clock()
+    session = { start = K.Now(), secs = 0, xp = 0, from = UnitLevel("player") }
+    table.insert(db.sessions, session)
+    while #db.sessions > MAX_SESSIONS do table.remove(db.sessions, 1) end
+  end
+  db.live = nil
   L.Current()
   Measure()
   -- other addons ask at login too; ours goes after theirs
@@ -266,6 +277,11 @@ K.On("PLAYER_REGEN_ENABLED", function() lastCombat = K.Clock() end)
 K.On("PLAYER_LOGOUT", function()
   if session then
     session.secs, session.to = L.SessionSecs(), UnitLevel("player")
+    local now, recent = K.Clock(), {}
+    for _, g in ipairs(gains) do
+      if now - g.t <= RATE_WINDOW then recent[#recent + 1] = g end
+    end
+    db.live = { start = session.start, gains = recent, buckets = L.buckets }
   end
 end)
 
