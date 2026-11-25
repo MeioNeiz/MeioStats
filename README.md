@@ -5,8 +5,8 @@ How fast you level, how lucky your quest drops are, and what you earn, in one wi
 For WoW Forever.
 
 ![Before: an hour of levelling is XP lines in chat and /played; with Meio Stats, the Levelling
-tab with XP per hour, time to the next level, where the XP came from and played time per
-level](docs/before-after.png)
+tab with XP per hour, time to the next level and where the XP came
+from](docs/before-after.png)
 
 ## What it does
 

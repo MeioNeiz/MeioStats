@@ -13,7 +13,12 @@
     {
       "file": "before-after.png",
       "title": "Before and after",
-      "description": "An hour of levelling: XP lines and /played in chat, then the Levelling tab with XP per hour, time to level and time per level"
+      "description": "An hour of levelling: XP lines and /played in chat, then XP per hour, time to level and where the XP came from"
+    },
+    {
+      "file": "luck.png",
+      "title": "Quest drop luck",
+      "description": "Each quest drop against its drop rate: Murloc Fin very unlucky (bottom 0.76%), Great Goretusk Snout very lucky (top 1.7%)"
     },
     {
       "file": "loot.png",
