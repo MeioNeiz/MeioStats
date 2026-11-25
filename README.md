@@ -1,8 +1,6 @@
 # Meio Stats
 
-How fast you level, how lucky your quest drops are, and what you earn, in one window.
-
-For WoW Forever.
+For WoW Forever. How fast are you really levelling? XP per hour, time to the next level, how lucky your quest drops were and what you earned, in one window.
 
 ![Before: an hour of levelling is XP lines in chat and /played; with Meio Stats, the Levelling
 tab with XP per hour, time to the next level and where the XP came
@@ -10,30 +8,33 @@ from](docs/before-after.png)
 
 ## What it does
 
-Type `/stats` for a window with three tabs. It records from the moment you install it.
+Type `/stats`, or click its button in the minimap's addon menu, for a window with four
+tabs. It records from the moment you install it.
 
-- Levelling: XP per hour now and this session, time to the next level, XP from kills,
-  rested, quests and exploring, and how long each level took
+- Levelling: XP and gold per hour, time to the next level, XP from kills, rested, quests
+  and exploring, and a row per level with its time, kills, quests, deaths and gold
+- Zones: each dungeon run with its time, XP per hour, kills and gold, and XP per hour in
+  each zone, so you can see whether dungeons or questing level you faster
 - Loot luck: kills and loot per mob, and quest drops against their real drop rate ("very
   lucky, top 2%"), with Questie installed
 - Money: what you sold and bought per item, with profit, and the last 30 days, from
   TradeSkillMaster's ledger
-- Gold gained or lost this session
+- A chat line at each level-up: how long it took, faster or slower than the level before
+- Time spent AFK is left out of XP per hour
 - Questie, TradeSkillMaster and [Meionomics](https://www.curseforge.com/wow/addons/meionomics) (profit
   on crafted items) are optional: without them the rest still works
 
 Settings: Esc > Options > AddOns > MeioStats, or `/stats settings`.
 
 - `/stats`: open or close the window (`/meiostats` too)
-- `/stats level`, `/stats loot`, `/stats money`: open on that tab
+- `/stats level`, `/stats zones`, `/stats loot`, `/stats money`: open on that tab
+- `/stats ding on|off`: the level-up chat line
 - `/stats reset`: put the window back in the middle
 - `/stats help`: all of these in chat
 
 ## Coming soon
 
 - Hand these in and you level: the XP waiting in your quest log, drawn on the XP bar
-- A chat line at each level-up: how long it took, with kills and quests
-- Time spent AFK left out of XP per hour
 
 ![Coming soon: XP bar tooltip: Quests ready: 5,790 XP (Level 23 when handed
 in)](docs/soon.png)

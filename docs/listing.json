@@ -1,6 +1,6 @@
 {
   "title": "Meio Stats",
-  "summary": "XP per hour, time to level, quest drop luck and gold earned, in one window.",
+  "summary": "XP per hour, time to level, quest drop luck and gold per level, in one window.",
   "cfCategory": "Quests & Leveling",
   "cfExtra": [
     "Auction & Economy"

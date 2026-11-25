@@ -23,6 +23,14 @@ function W.Text(parent, font, justify)
   return fs
 end
 
+-- gold title at a Box's top left
+function W.Header(box, text)
+  local fs = W.Text(box, "GameFontNormal")
+  fs:SetPoint("TOPLEFT", 8, -6)
+  fs:SetText(text)
+  return fs
+end
+
 -- dark panel behind a group, like the Blizzard insets but lighter
 function W.Box(parent)
   local f = CreateFrame("Frame", nil, parent)
@@ -186,6 +194,81 @@ function W.Legend(parent)
     end
   end
   return f
+end
+
+-- table in a Box: a name at the left, an optional bar, then right-aligned columns.
+--   cols = { { key, w, icon | text, coords?, tip }, ... } left to right; header icons
+--   explain themselves on hover. opts = { rows, lead (name width), bar, top }
+--   row.name, row.bar, row.cells[key]; row:SetScript("OnEnter", ...) for a tooltip
+local GAP = 6
+
+local function HeadTooltip(h)
+  GameTooltip:SetOwner(h, "ANCHOR_TOP")
+  GameTooltip:SetText(h.tip, 1, 1, 1, 1, true)
+  GameTooltip:Show()
+end
+
+local function HideTooltip() GameTooltip:Hide() end
+
+function W.Table(box, cols, opts)
+  local t = { heads = {}, rows = {} }
+  local right, x = {}, 0
+  for i = #cols, 1, -1 do
+    right[i] = x
+    x = x + cols[i].w + GAP
+  end
+  for i, c in ipairs(cols) do
+    local h = CreateFrame("Frame", nil, box)
+    h:SetSize(c.w, 16)
+    h:SetPoint("TOPRIGHT", -8 - right[i], -6)
+    if c.icon then
+      local tex = h:CreateTexture(nil, "ARTWORK")
+      tex:SetSize(14, 14)
+      tex:SetPoint("RIGHT")
+      tex:SetTexture(c.icon)
+      if c.coords then tex:SetTexCoord(unpack(c.coords)) end
+    else
+      local fs = W.Text(h, "GameFontDisableSmall", "RIGHT")
+      fs:SetPoint("RIGHT")
+      fs:SetText(c.text)
+    end
+    if c.tip then
+      h.tip = c.tip
+      h:EnableMouse(true)
+      h:SetScript("OnEnter", HeadTooltip)
+      h:SetScript("OnLeave", HideTooltip)
+    end
+    t.heads[c.key] = h
+  end
+  local top, lead = opts.top or -26, opts.lead or 42
+  for i = 1, opts.rows do
+    local r = CreateFrame("Frame", nil, box)
+    r:SetHeight(20)
+    r:SetPoint("TOPLEFT", 8, top - (i - 1) * 21)
+    r:SetPoint("TOPRIGHT", -8, top - (i - 1) * 21)
+    local hl = r:CreateTexture(nil, "HIGHLIGHT")
+    hl:SetAllPoints()
+    hl:SetColorTexture(1, 1, 1, 0.06)
+    r.name = W.Text(r, "GameFontNormalSmall")
+    r.name:SetPoint("LEFT", 0, 0)
+    r.name:SetWidth(lead)
+    if opts.bar then
+      r.bar = W.Bar(r, 12)
+      r.bar:SetPoint("LEFT", lead + 4, 0)
+      r.bar:SetPoint("RIGHT", -x, 0)
+    end
+    r.cells = {}
+    for c, col in ipairs(cols) do
+      local fs = W.Text(r, "GameFontHighlightSmall", "RIGHT")
+      fs:SetPoint("RIGHT", -right[c], 0)
+      fs:SetWidth(col.w)
+      r.cells[col.key] = fs
+    end
+    r:EnableMouse(true)
+    r:SetScript("OnLeave", HideTooltip)
+    t.rows[i] = r
+  end
+  return t
 end
 
 -- item row: icon, name, right-side text, an optional bar under the name; tooltip on hover

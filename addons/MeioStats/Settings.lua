@@ -1,8 +1,16 @@
--- Settings panel (Esc > Options > AddOns > MeioStats, or /stats settings): no options yet,
--- so it says where the window is and has its buttons.
+-- Settings panel (Esc > Options > AddOns > MeioStats, or /stats settings): where the window
+-- is and its buttons, then the checkboxes, in the same words as their chat toggles.
 local _, K = ...
 
 local category
+
+local function Toggle(key, name, tip)
+  if not (Settings.RegisterProxySetting and Settings.CreateCheckbox) then return end
+  local setting = Settings.RegisterProxySetting(category, "MEIOSTATS_" .. key:upper(),
+    Settings.VarType.Boolean, name, K.OPTIONS[key].default,
+    function() return K.Option(key) end, function(v) K.SetOption(key, v) end)
+  Settings.CreateCheckbox(category, setting, tip)
+end
 
 local function Register()
   if category or not (Settings and Settings.RegisterVerticalLayoutCategory) then return end
@@ -24,6 +32,23 @@ local function Register()
       K.ResetWindow,
       "Put the window back in the middle of the screen (same as /stats reset).", true))
   end
+  if layout and CreateSettingsListSectionHeaderInitializer then
+    layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("XP bar",
+      "Blizzard's XP bar. FlareUI replaces it with its own, which has a Quest XP setting."))
+  end
+  Toggle("questBar", "Quest XP band",
+    "A gold band on the XP bar shows how far handing in your finished quests takes you, and"
+    .. " the bar's tooltip says how much XP that is (/stats questxp on||off).")
+  Toggle("questOpen", "Quests in progress",
+    "A fainter band past the gold one adds the quests you haven't finished yet"
+    .. " (/stats questxp progress on||off).")
+  if layout and CreateSettingsListSectionHeaderInitializer then
+    layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Chat",
+      "What MeioStats says in chat."))
+  end
+  Toggle("dingLine", "Level-up summary", "At each new level, one chat line: how long the"
+    .. " level took against the one before, and its kills and quests"
+    .. " (/stats ding on||off).")
   Settings.RegisterAddOnCategory(category)
 end
 

@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: MeioStats
-## Notes: Levelling times and XP per hour, loot luck against drop rates, money per item. /stats
-## Version: 1.0.1
+## Notes: XP and gold per hour, time to level, a row per level, dungeon runs and XP per zone, loot luck against drop rates. /stats
+## Version: 1.1.0
 ## Category: Meio
 ## IconTexture: Interface\Icons\INV_Misc_PocketWatch_01
 ## AddonCompartmentFunc: MeioStats_OnAddonCompartmentClick
@@ -16,6 +16,8 @@
 
 Core.lua
 Level.lua
+Runs.lua
+QuestXP.lua
 Loot.lua
 Money.lua
 Widgets.lua
@@ -24,3 +26,4 @@ UI.lua
 UILevel.lua
 UILoot.lua
 UIMoney.lua
+UIZones.lua

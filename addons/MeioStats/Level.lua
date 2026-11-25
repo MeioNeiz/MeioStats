@@ -1,10 +1,12 @@
 -- Levelling: played and real time per level, XP by source, XP/hour, time to level.
 --   db.levels[level] = { startPlayed, startReal, played, real, done, partial,
---     xp = { kill, rested, quest, explore, other }, kills, quests }
+--     xp = { kill, rested, quest, explore, other }, kills, quests, deaths, gold }
 --   played: seconds of /played spent in that level (exact even mid-level: TIME_PLAYED_MSG
 --   gives the time in this level); real: wall clock from ding to ding (partial: the addon
 --   wasn't there at the start, so real time is unknown)
---   db.sessions[i] = { start, secs, xp, from, to }, the last MAX_SESSIONS
+--   gold: copper gained (or lost) in the level, see OnMoney
+--   db.sessions[i] = { start, secs, xp, from, to, kills, deaths, gold, idle }, the last
+--   MAX_SESSIONS
 -- XP sources: every XP change is measured from UnitXP, then explained by the chat lines and
 -- quest events around it. A change nothing explains counts as a kill in or just after
 -- combat (combat chat can be a secret value), else "other".
@@ -27,6 +29,10 @@ local pending = {}    -- { src, xp, t } explained but not yet measured
 local deltas = {}     -- { xp, level } measured but not yet explained
 local lastCombat = -math.huge
 L.buckets = {}        -- session XP per BUCKET seconds, for the sparkline
+-- AFK time is left out of XP per hour: { from, to } in K.Clock time, the last MAX_AFK spans;
+-- the open one has no `to`. session.idle holds the closed total for the session.
+local MAX_AFK = 50
+local afk = {}
 
 ------------------------------------------------------------------------------ played time
 -- RequestTimePlayed prints to chat; the chat frames are muted while our request is out
@@ -90,6 +96,7 @@ end
 
 local function Add(rec, src, xp)
   rec.xp[src] = (rec.xp[src] or 0) + xp
+  if K.Runs then K.Runs.Add("xp", xp) end
   if session then
     session.xp = (session.xp or 0) + xp
     session.src = session.src or {}
@@ -161,6 +168,7 @@ local function OnCombatXP(msg)
   local rec = L.Current()
   rec.kills = (rec.kills or 0) + 1
   if session then session.kills = (session.kills or 0) + 1 end
+  if K.Runs then K.Runs.Add("kills", 1) end
   if K.Loot then K.Loot.KilledByName(name) end
 end
 
@@ -179,18 +187,49 @@ function L.SessionSecs() return sessionStart and K.Clock() - sessionStart or 0 e
 
 function L.Session() return session end
 
--- XP/hour over the last RATE_WINDOW seconds (or the session, if shorter), and this session
+local function AfkBetween(a, b)
+  local secs = 0
+  for _, s in ipairs(afk) do
+    local from, to = math.max(a, s.from), math.min(b, s.to or b)
+    if to > from then secs = secs + to - from end
+  end
+  return secs
+end
+
+local function SetAfk(on)
+  local open, now = afk[#afk], K.Clock()
+  if open and not open.to then
+    if on then return end
+    open.to = now
+    if session then session.idle = (session.idle or 0) + now - open.from end
+  elseif on then
+    afk[#afk + 1] = { from = now }
+    while #afk > MAX_AFK do table.remove(afk, 1) end
+  end
+end
+
+-- seconds AFK this session, and the session time without them
+function L.IdleSecs()
+  local open = afk[#afk]
+  return (session and session.idle or 0) + ((open and not open.to) and K.Clock() - open.from or 0)
+end
+
+function L.ActiveSecs() return math.max(0, L.SessionSecs() - L.IdleSecs()) end
+
+-- XP/hour over the last RATE_WINDOW seconds of play (or the session, if shorter), and this
+-- session; AFK time counts in neither, so the rate holds while you are away
 function L.Rates()
-  local now, secs = K.Clock(), L.SessionSecs()
+  local now, active = K.Clock(), L.ActiveSecs()
   local recent = 0
   for i = #gains, 1, -1 do
-    if now - gains[i].t > RATE_WINDOW then break end
+    local t = gains[i].t
+    if now - t - AfkBetween(t, now) > RATE_WINDOW then break end
     recent = recent + gains[i].xp
   end
-  local span = math.min(RATE_WINDOW, secs)
+  local span = math.min(RATE_WINDOW, active)
   local total = session and session.xp or 0
   return span >= 60 and recent / span * 3600 or nil,
-    secs >= 60 and total / secs * 3600 or nil
+    active >= 60 and total / active * 3600 or nil
 end
 
 -- seconds of play to the next level, by the rate now (session if quiet lately)
@@ -203,12 +242,97 @@ function L.ETA()
   return (UnitXPMax("player") - UnitXP("player")) / rate * 3600
 end
 
+-- seconds of play to the next level once the finished quests are handed in: 0 when they
+-- level you, nil without a rate or quests ready
+function L.ETAWithQuests()
+  local Q = K.QuestXP
+  if not (Q and Q.On()) then return nil end
+  local ready = Q.Totals()
+  if ready <= 0 then return nil end
+  local left = UnitXPMax("player") - UnitXP("player") - ready
+  if left <= 0 then return 0 end
+  local eta = L.ETA()
+  return eta and eta * left / (UnitXPMax("player") - UnitXP("player"))
+end
+
 -- kills to level at this level's average kill XP (rested included)
 function L.KillsToLevel()
   local rec = L.Current()
   local xp = (rec.xp.kill or 0) + (rec.xp.rested or 0)
   if (rec.kills or 0) < 3 or xp <= 0 then return nil end
   return math.ceil((UnitXPMax("player") - UnitXP("player")) / (xp / rec.kills))
+end
+
+------------------------------------------------------------------------------ gold, deaths
+-- Gold: every change of your money except while a mailbox, trade, guild bank or auction
+-- house is open (moving gold between characters, or trading, isn't levelling). Kept for 1 s
+-- after closing: the last money update can land after the close event.
+local money
+local trading = {}
+
+local function Trading()
+  local now = K.Clock()
+  for _, v in pairs(trading) do
+    if v == true or now < v then return true end
+  end
+  return false
+end
+
+local function OnMoney()
+  local m = GetMoney()
+  local d = money and m - money or 0
+  money = m
+  if d == 0 or Trading() then return end
+  local rec = L.Current()
+  rec.gold = (rec.gold or 0) + d
+  if session then session.gold = (session.gold or 0) + d end
+  if K.Runs then K.Runs.Add("gold", d) end
+  if K.UI then K.UI.Dirty("level") end
+end
+
+for open, close in pairs({ MAIL_SHOW = "MAIL_CLOSED", TRADE_SHOW = "TRADE_CLOSED",
+  AUCTION_HOUSE_SHOW = "AUCTION_HOUSE_CLOSED",
+  GUILDBANKFRAME_OPENED = "GUILDBANKFRAME_CLOSED" }) do
+  K.On(open, function() trading[open] = true end)
+  K.On(close, function() trading[open] = K.Clock() + 1 end)
+end
+
+-- copper per hour of play this session, after 5 minutes
+function L.GoldRate()
+  local active = L.ActiveSecs()
+  if not session or active < 300 then return nil end
+  return (session.gold or 0) / active * 3600
+end
+
+------------------------------------------------------------------------------ level-up line
+local function Plural(n, word) return n .. " " .. word .. (n == 1 and "" or "s") end
+
+-- "Level 23 in 1h 12m (12m faster than 22): 31 kills, 6 quests". Played time is exact even
+-- for a level the addon joined part way (partial); its kills and quests aren't: no counts.
+function L.SummaryLine(newLevel)
+  local rec = db.levels[newLevel - 1]
+  if not rec or (rec.partial and not rec.played) then return nil end
+  local text, before = "Level " .. newLevel, newLevel - 1
+  if rec.played then
+    text = text .. " in " .. K.Duration(rec.played)
+    local prev = db.levels[newLevel - 2]
+    if prev and prev.played then
+      local diff = prev.played - rec.played
+      if math.abs(diff) < 60 then
+        text = text .. (" (as fast as %d)"):format(before)
+      elseif diff > 0 then
+        text = text .. (" (|cff80ff80%s faster|r than %d)"):format(K.Duration(diff), before)
+      else
+        text = text .. (" (%s slower than %d)"):format(K.Duration(-diff), before)
+      end
+    end
+  end
+  if rec.partial then return text end
+  text = ("%s: %s, %s"):format(text, Plural(rec.kills or 0, "kill"),
+    Plural(rec.quests or 0, "quest"))
+  if (rec.deaths or 0) > 0 then text = text .. ", " .. Plural(rec.deaths, "death") end
+  if (rec.gold or 0) ~= 0 then text = text .. ", " .. K.Coins(rec.gold, true) end
+  return text
 end
 
 ------------------------------------------------------------------------------ events
@@ -228,7 +352,7 @@ K.On("PLAYER_ENTERING_WORLD", function(initial, reload)
     session = lastSession
     session.to = nil
     sessionStart = K.Clock() - (session.secs or 0)
-    gains, L.buckets = live.gains or {}, live.buckets or {}
+    gains, L.buckets, afk = live.gains or {}, live.buckets or {}, live.afk or {}
   else
     sessionStart = K.Clock()
     session = { start = K.Now(), secs = 0, xp = 0, from = UnitLevel("player") }
@@ -236,6 +360,8 @@ K.On("PLAYER_ENTERING_WORLD", function(initial, reload)
     while #db.sessions > MAX_SESSIONS do table.remove(db.sessions, 1) end
   end
   db.live = nil
+  money = GetMoney()
+  SetAfk(UnitIsAFK("player"))
   L.Current()
   Measure()
   -- other addons ask at login too; ours goes after theirs
@@ -261,6 +387,11 @@ K.On("PLAYER_LEVEL_UP", function(newLevel)
   db.levels[newLevel] = rec
   -- the client's level time is exact; ours is off by the time since the last request
   C_Timer.After(2, L.RequestPlayed)
+  -- after Blizzard's own level-up lines
+  C_Timer.After(1, function()
+    local line = K.Option("dingLine") and L.SummaryLine(newLevel)
+    if line then K.Print(line) end
+  end)
   if K.UI then K.UI.Dirty("level") end
 end)
 
@@ -270,18 +401,34 @@ K.On("QUEST_TURNED_IN", function(_, xp)
   rec.quests = (rec.quests or 0) + 1
 end)
 
+K.On("PLAYER_MONEY", OnMoney)
+K.On("PLAYER_DEAD", function()
+  local rec = L.Current()
+  rec.deaths = (rec.deaths or 0) + 1
+  if session then session.deaths = (session.deaths or 0) + 1 end
+  if K.Runs then K.Runs.Add("deaths", 1) end
+  if K.UI then K.UI.Dirty("level") end
+end)
 K.On("CHAT_MSG_COMBAT_XP_GAIN", OnCombatXP)
 K.On("CHAT_MSG_SYSTEM", OnSystem)
 K.On("UI_INFO_MESSAGE", function(_, msg) OnSystem(msg) end)
 K.On("PLAYER_REGEN_ENABLED", function() lastCombat = K.Clock() end)
+K.On("PLAYER_FLAGS_CHANGED", function(unit)
+  if session and (unit == nil or unit == "player") then
+    SetAfk(UnitIsAFK("player"))
+    if K.UI then K.UI.Dirty("level") end
+  end
+end)
 K.On("PLAYER_LOGOUT", function()
   if session then
+    -- closed so session.idle is whole; after a /reload, login reopens it if still AFK
+    SetAfk(false)
     session.secs, session.to = L.SessionSecs(), UnitLevel("player")
     local now, recent = K.Clock(), {}
     for _, g in ipairs(gains) do
-      if now - g.t <= RATE_WINDOW then recent[#recent + 1] = g end
+      if now - g.t - AfkBetween(g.t, now) <= RATE_WINDOW then recent[#recent + 1] = g end
     end
-    db.live = { start = session.start, gains = recent, buckets = L.buckets }
+    db.live = { start = session.start, gains = recent, buckets = L.buckets, afk = afk }
   end
 end)
 

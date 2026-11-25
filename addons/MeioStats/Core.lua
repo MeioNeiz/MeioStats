@@ -85,20 +85,55 @@ K.On("ADDON_LOADED", function(name)
   for _, fn in ipairs(loaders) do fn(K.db) end
 end)
 
+-- on/off options: the chat toggle and Settings checkbox share key, label and default
+K.OPTIONS = {
+  questBar = { label = "quest XP band", default = false },
+  questOpen = { label = "quests in progress", default = false },
+  dingLine = { label = "level-up summary", default = true },
+}
+
+function K.Option(key)
+  local v = K.db and K.db[key]
+  if v == nil then return K.OPTIONS[key].default end
+  return v
+end
+
+function K.SetOption(key, on)
+  K.db[key] = on
+  if K.QuestXP then K.QuestXP.Refresh() end
+end
+
 local function Cmd(text) return "|cffffd100" .. text .. "|r" end
+
+local function OnOff(on) return on and "|cff80ff80on|r" or "|cffff8080off|r" end
+
+local function Now(key) return " (now " .. (K.Option(key) and "on" or "off") .. ")" end
 
 local HELP = {
   { "/stats", "open or close the window, on the last tab" },
   { "/stats level||xp", "levelling: played time per level, XP per hour, where XP came from" },
+  { "/stats zones||runs", "zones: dungeon runs and XP per hour in each zone" },
   { "/stats loot||luck", "loot luck: quest drops against Questie's drop rates, all loot" },
   { "/stats money||gold", "money: sales, purchases and profit from TSM's ledger" },
+  { "/stats questxp on||off", function()
+    return "quest XP band: how far your finished quests take the XP bar" .. Now("questBar")
+  end },
+  { "/stats questxp progress on||off", function()
+    return "quests in progress: a fainter band past it" .. Now("questOpen")
+  end },
+  { "/stats ding on||off", function()
+    return "level-up summary: time, kills and quests in chat at each level"
+      .. Now("dingLine")
+  end },
   { "/stats reset", "put the window back in the middle of the screen" },
 }
 
 local function Help()
   K.Print("levelling times, loot luck and money per item")
   for _, h in ipairs(HELP) do
-    DEFAULT_CHAT_FRAME:AddMessage("  " .. Cmd(h[1]) .. " - " .. h[2])
+    local text = h[2]
+    if type(text) == "function" then text = text() end
+    DEFAULT_CHAT_FRAME:AddMessage("  " .. Cmd(h[1] --[[@as string]]) .. " - " .. text)
   end
   DEFAULT_CHAT_FRAME:AddMessage("  Settings: Esc > Options > AddOns > MeioStats ("
     .. Cmd("/stats settings") .. ")")
@@ -109,8 +144,31 @@ function K.ResetWindow()
   K.Print("window moved back to the middle of the screen")
 end
 
+-- on / off sets it, nothing flips it
+local function OptionCmd(key, word, typed)
+  local on
+  if word == "on" then on = true
+  elseif word == "off" then on = false
+  elseif word == "" then on = not K.Option(key)
+  else
+    K.Print('unknown command "' .. typed .. '"')
+    return Help()
+  end
+  K.SetOption(key, on)
+  K.Print(K.OPTIONS[key].label .. " " .. OnOff(on))
+end
+
+local function QuestXPCmd(rest)
+  local word = rest:lower()
+  local sub = word:match("^progress%s*(.-)$")
+  if sub then return OptionCmd("questOpen", sub, "questxp " .. rest) end
+  return OptionCmd("questBar", word, "questxp " .. rest)
+end
+
 local commands = {
   help = Help,
+  questxp = QuestXPCmd,
+  ding = function(rest) return OptionCmd("dingLine", rest:lower(), "ding " .. rest) end,
   ["?"] = Help,
   reset = K.ResetWindow,
   settings = function() K.OpenSettings() end,
