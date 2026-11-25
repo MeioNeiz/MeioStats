@@ -29,6 +29,15 @@ Settings: Esc > Options > AddOns > MeioStats, or `/stats settings`.
 - `/stats reset`: put the window back in the middle
 - `/stats help`: all of these in chat
 
+## Coming soon
+
+- Hand these in and you level: the XP waiting in your quest log, drawn on the XP bar
+- A chat line at each level-up: how long it took, with kills and quests
+- Time spent AFK left out of XP per hour
+
+![Coming soon: XP bar tooltip: Quests ready: 5,790 XP (Level 23 when handed
+in)](docs/soon.png)
+
 ## Install
 
 Use your addon manager (CurseForge, Wago), or unzip a GitHub release into
