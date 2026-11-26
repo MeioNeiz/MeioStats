@@ -16,6 +16,11 @@
       "description": "An hour of levelling: XP lines and /played in chat, then XP per hour, time to level and where the XP came from"
     },
     {
+      "file": "zones.png",
+      "title": "Dungeon runs and zones",
+      "description": "Each dungeon run with time, XP per hour, kills, deaths and gold, then XP per hour in each zone at your level"
+    },
+    {
       "file": "luck.png",
       "title": "Quest drop luck",
       "description": "Each quest drop against its drop rate: Murloc Fin very unlucky (bottom 0.76%), Great Goretusk Snout very lucky (top 1.7%)"
