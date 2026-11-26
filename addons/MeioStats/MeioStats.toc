@@ -1,7 +1,7 @@
 ## Interface: 16001
-## Title: MeioXPMeter
+## Title: MeioStats
 ## Notes: XP and gold per hour, time to level, a row per level, dungeon runs and XP per zone, loot luck against drop rates. /stats
-## Version: 1.1.2
+## Version: 1.1.3
 ## Category: Meio
 ## IconTexture: Interface\Icons\INV_Misc_PocketWatch_01
 ## AddonCompartmentFunc: MeioStats_OnAddonCompartmentClick

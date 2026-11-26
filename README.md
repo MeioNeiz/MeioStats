@@ -1,8 +1,8 @@
-# Meio XP Meter
+# Meio Stats
 
 For WoW Forever. How fast are you really levelling? XP per hour, time to the next level, how lucky your quest drops were and what you earned, in one window.
 
-![Before: an hour of levelling is XP lines in chat and /played; with Meio XP Meter, the Levelling
+![Before: an hour of levelling is XP lines in chat and /played; with Meio Stats, the Levelling
 tab with XP per hour, time to the next level and where the XP came
 from](docs/before-after.png)
 
@@ -24,7 +24,7 @@ tabs. It records from the moment you install it.
 - Questie, TradeSkillMaster and [Meionomics](https://www.curseforge.com/wow/addons/meionomics) (profit
   on crafted items) are optional: without them the rest still works
 
-Settings: Esc > Options > AddOns > MeioXPMeter, or `/stats settings`.
+Settings: Esc > Options > AddOns > MeioStats, or `/stats settings`.
 
 - `/stats`: open or close the window (`/meiostats` too)
 - `/stats level`, `/stats zones`, `/stats loot`, `/stats money`: open on that tab

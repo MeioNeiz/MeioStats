@@ -1,4 +1,9 @@
-# Meio XP Meter
+# Meio Stats
+
+## 1.1.3
+
+- Back to the name Meio Stats: the AddOns list, Settings, chat and the window title say
+  MeioStats again. /stats and everything it has recorded are unchanged
 
 ## 1.1.2
 
