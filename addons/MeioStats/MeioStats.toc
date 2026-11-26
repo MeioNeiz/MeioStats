@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: MeioXPMeter
 ## Notes: XP and gold per hour, time to level, a row per level, dungeon runs and XP per zone, loot luck against drop rates. /stats
-## Version: 1.1.1
+## Version: 1.1.2
 ## Category: Meio
 ## IconTexture: Interface\Icons\INV_Misc_PocketWatch_01
 ## AddonCompartmentFunc: MeioStats_OnAddonCompartmentClick
@@ -10,7 +10,7 @@
 ## X-License: MIT
 ## X-Curse-Project-ID: 1824317
 ## X-Wago-ID: BKpE9qGE
-## OptionalDeps: Questie, TradeSkillMaster, Meionomics
+## OptionalDeps: QuestieDB, Questie, TradeSkillMaster, Meionomics
 # KafStatsCharDB: the name before 1.0.0, read once and moved over
 ## SavedVariablesPerCharacter: MeioStatsCharDB, KafStatsCharDB
 

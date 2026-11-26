@@ -127,16 +127,18 @@ local function Refresh(p)
   p.tiles[2]:Set("Items looted", K.Count(qty), ("%d kinds, %d green or better"):format(#obs,
     rares))
   local rates = L.HasRates()
+  local locked = not rates and L.NoRatesReason() == "unreadable"
+  local noRates = locked and "no drop rates" or "needs Questie"
   if #rated > 0 then
     p.tiles[3]:Set("Quest drops", K.Count(drops), ("expected %.1f"):format(expected))
   else
-    p.tiles[3]:Set("Quest drops", nil, rates and "none yet" or "needs Questie")
+    p.tiles[3]:Set("Quest drops", nil, rates and "none yet" or noRates)
   end
   local diff = drops - expected
   local luck = #rated > 0 and W.Paint(diff >= 0 and C.good or C.bad,
     ("%+.1f drops"):format(diff)) or nil
   p.tiles[4]:Set("Overall luck", luck, luck and "vs drop rates"
-    or (rates and "kill mobs for a quest item" or "needs Questie"))
+    or (rates and "kill mobs for a quest item" or noRates))
 
   Page(p.rated, rated, RATED_ROWS)
   for i, row in ipairs(p.rated.rows) do
@@ -154,6 +156,8 @@ local function Refresh(p)
     end
   end
   local none = rates and "Kill mobs for a quest item and its drop luck shows here"
+    or locked and "This Questie doesn't share its drop rates. Quest items are still counted"
+      .. " below."
     or "Needs Questie for drop rates. Quest items are still counted below."
   p.rated.empty:SetText(#rated == 0 and none or "")
 

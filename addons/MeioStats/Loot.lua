@@ -5,7 +5,7 @@
 -- Kills: no combat log on Forever, so a kill is an XP line ("X dies, you gain") or a looted
 -- corpse (grey mobs give no XP); the two are matched per mob so one kill counts once.
 -- Rates: Questie's drop tables (quest items only: Wowhead / cMaNGOS / its corrections,
--- in %).
+-- in %); which items a quest wants: QuestieDB (LibQuestieDB).
 -- Quest items drop only while the quest is in the log, so their kills count only then.
 -- Luck: binomial (Poisson-binomial over several mobs) percentile of the drops seen.
 local _, K = ...
@@ -22,28 +22,61 @@ local wanted, wantedDirty = {}, true   -- itemID -> true while a quest in the lo
 local rateCache = {}
 
 ------------------------------------------------------------------------------ Questie
-local function QuestieDB()
-  local QL = QuestieLoader
-  if type(QL) ~= "table" or not QL.ImportModule then return nil end
-  local ok, q = pcall(QL.ImportModule, QL, "QuestieDB")
-  return ok and type(q) == "table" and q or nil
+-- What a quest needs comes from QuestieDB's public API (LibQuestieDB). Drop rates only
+-- Questie itself has, behind QuestieLoader, which Questie is shutting other addons out of:
+-- asked once, and when it refuses there are no rates and no error.
+local CONTRACT = 4
+
+local function QDB()
+  local lib = rawget(_G, "LibQuestieDB")
+  if type(lib) ~= "table" or type(lib.RequireContract) ~= "function" then return nil end
+  local ok, fits = pcall(lib.RequireContract, CONTRACT)
+  return ok and fits and lib or nil
 end
 
-function L.HasRates() return QuestieDB() ~= nil end
+local function QuestField(questID, key)
+  local lib = QDB()
+  local quest = lib and lib.Quest
+  if not (type(quest) == "table" and quest.Get) then return nil end
+  local ok, v = pcall(quest.Get, questID, key)
+  return ok and type(v) == "table" and v or nil
+end
+
+local dropRates   -- Questie's QuestieDB module, false once it can't be had
+local function DropRates()
+  if dropRates == nil then
+    dropRates = false
+    local QL = rawget(_G, "QuestieLoader")
+    if type(QL) == "table" and type(QL.ImportModule) == "function" then
+      local ok, q = pcall(QL.ImportModule, QL, "QuestieDB")
+      if ok and type(q) == "table" and type(q.GetItemDroprate) == "function" then
+        dropRates = q
+      end
+    end
+  end
+  return dropRates or nil
+end
+
+-- rates need both: Questie's drop tables, and QuestieDB to know which items are wanted
+function L.HasRates() return DropRates() ~= nil and QDB() ~= nil end
+
+-- why there are no rates: Questie isn't there, or it doesn't let us read them
+function L.NoRatesReason()
+  local loaded = C_AddOns and C_AddOns.IsAddOnLoaded and C_AddOns.IsAddOnLoaded("Questie")
+  return loaded and "unreadable" or "noquestie"
+end
 
 -- drop rate 0..1 and its source, or nil
 function L.Rate(itemID, npcID)
   local key = itemID .. ":" .. npcID
   local c = rateCache[key]
   if c == nil then
-    c = false
-    local q = QuestieDB()
-    if q and q.GetItemDroprate then
-      local ok, r = pcall(q.GetItemDroprate, itemID, npcID)
-      local pct = ok and type(r) == "table" and tonumber(r[1])
-      if pct and pct ~= 0 then c = { math.min(math.abs(pct), 100) / 100, r[2] } end
-    end
-    rateCache[key] = c
+    local q = DropRates()
+    if not q then return nil end
+    local ok, r = pcall(q.GetItemDroprate, itemID, npcID)
+    local pct = ok and type(r) == "table" and tonumber(r[1])
+    c = pct and pct ~= 0 and { math.min(math.abs(pct), 100) / 100, r[2] } or false
+    if ok then rateCache[key] = c end
   end
   if c then return c[1], c[2] end
 end
@@ -65,16 +98,14 @@ local function Wanted()
   if not wantedDirty then return wanted end
   wantedDirty = false
   wipe(wanted)
-  local q = QuestieDB()
-  if not (q and q.QueryQuestSingle) then return wanted end
+  if not QDB() then return wanted end
   for _, id in ipairs(QuestLogIDs()) do
     if not Complete(id) then
-      local ok, obj = pcall(q.QueryQuestSingle, id, "objectives")
-      for _, it in ipairs(ok and type(obj) == "table" and obj[3] or {}) do
+      local obj = QuestField(id, "objectives")
+      for _, it in ipairs(obj and type(obj[3]) == "table" and obj[3] or {}) do
         if type(it) == "table" and it[1] then wanted[it[1]] = true end
       end
-      local ok2, src = pcall(q.QueryQuestSingle, id, "requiredSourceItems")
-      for _, it in ipairs(ok2 and type(src) == "table" and src or {}) do
+      for _, it in ipairs(QuestField(id, "requiredSourceItems") or {}) do
         wanted[it] = true
       end
     end
@@ -310,4 +341,6 @@ for _, e in ipairs(QUEST_EVENTS) do
 end
 
 L._test = { OnLoot = OnLoot, Remember = Remember, Pmf = Pmf,
-  SetWanted = function(t) wanted, wantedDirty = t, false end }
+  SetWanted = function(t) wanted, wantedDirty = t, false end,
+  Wanted = function() wantedDirty = true return Wanted() end,
+  ResetQuestie = function() dropRates = nil wipe(rateCache) end }

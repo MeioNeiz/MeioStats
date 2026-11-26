@@ -1,5 +1,12 @@
 # Meio XP Meter
 
+## 1.1.2
+
+- Loot luck reads which items your quests need from QuestieDB only: ready for Questie's next
+  big update, which shuts other addons out of its insides
+- Drop rates still come from Questie while it shares them; when it doesn't, the Loot tab says
+  so instead of asking you to install Questie, and quest items are still counted
+
 ## 1.1.1
 
 - Now called Meio XP Meter: the AddOns list, Settings and chat say MeioXPMeter. /stats and
