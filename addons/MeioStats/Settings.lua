@@ -15,7 +15,7 @@ end
 local function Register()
   if category or not (Settings and Settings.RegisterVerticalLayoutCategory) then return end
   local layout
-  category, layout = Settings.RegisterVerticalLayoutCategory("MeioStats")
+  category, layout = Settings.RegisterVerticalLayoutCategory("MeioXPMeter")
   if layout and CreateSettingsListSectionHeaderInitializer then
     layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("The /stats window",
       "Levelling: played time per level, XP per hour and where it came from. Loot luck: quest"
@@ -27,7 +27,7 @@ local function Register()
       function()
         if SettingsPanel and SettingsPanel:IsShown() then HideUIPanel(SettingsPanel) end
         K.UI.Show()
-      end, "Close Settings and open the MeioStats window.", true))
+      end, "Close Settings and open the MeioXPMeter window.", true))
     layout:AddInitializer(CreateSettingsButtonInitializer("Window position", "Reset",
       K.ResetWindow,
       "Put the window back in the middle of the screen (same as /stats reset).", true))
@@ -44,7 +44,7 @@ local function Register()
     .. " (/stats questxp progress on||off).")
   if layout and CreateSettingsListSectionHeaderInitializer then
     layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Chat",
-      "What MeioStats says in chat."))
+      "What MeioXPMeter says in chat."))
   end
   Toggle("dingLine", "Level-up summary", "At each new level, one chat line: how long the"
     .. " level took against the one before, and its kills and quests"

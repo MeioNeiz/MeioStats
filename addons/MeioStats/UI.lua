@@ -86,7 +86,7 @@ local function Create()
     SavePosition()
   end)
   if frame.SetTitle then
-    frame:SetTitle((UnitName("player") or "") .. " - Stats")
+    frame:SetTitle((UnitName("player") or "") .. " - XP Meter")
   end
   tinsert(UISpecialFrames, frame:GetName())
   frame.Inset:ClearAllPoints()

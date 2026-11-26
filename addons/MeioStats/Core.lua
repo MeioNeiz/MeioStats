@@ -7,7 +7,7 @@ MeioStats = K
 function K.Now() return time() end
 function K.Clock() return GetTime() end
 
-function K.Print(msg) DEFAULT_CHAT_FRAME:AddMessage("|cffb090ffMeioStats:|r " .. msg) end
+function K.Print(msg) DEFAULT_CHAT_FRAME:AddMessage("|cffb090ffMeioXPMeter:|r " .. msg) end
 
 -- secret values (combat chat, some unit info on this client) can't be compared or parsed
 local canaccess = canaccessvalue or function() return true end
@@ -135,7 +135,7 @@ local function Help()
     if type(text) == "function" then text = text() end
     DEFAULT_CHAT_FRAME:AddMessage("  " .. Cmd(h[1] --[[@as string]]) .. " - " .. text)
   end
-  DEFAULT_CHAT_FRAME:AddMessage("  Settings: Esc > Options > AddOns > MeioStats ("
+  DEFAULT_CHAT_FRAME:AddMessage("  Settings: Esc > Options > AddOns > MeioXPMeter ("
     .. Cmd("/stats settings") .. ")")
 end
 
@@ -199,7 +199,7 @@ local function TakeOverKafStats()
   SlashCmdList.KAFSTATS = Slash
   if hash_SlashCmdList then hash_SlashCmdList["/STATS"] = nil end
   K.Print("the old KafStats addon is still enabled; disable it in the AddOns list"
-    .. " (MeioStats replaces it)")
+    .. " (MeioXPMeter replaces it)")
 end
 K.On("PLAYER_LOGIN", TakeOverKafStats)
 

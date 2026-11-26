@@ -50,7 +50,7 @@ local function RowTooltip(row)
   tt:AddDoubleLine("Played", K.Duration(e.played), 1, 0.82, 0, 1, 1, 1)
   if e.real then tt:AddDoubleLine("Real time", K.Duration(e.real), 1, 0.82, 0, 1, 1, 1) end
   if r.partial then
-    tt:AddLine("MeioStats came in part way: kills, quests and gold only count from then",
+    tt:AddLine("MeioXPMeter came in part way: kills, quests and gold only count from then",
       0.6, 0.6, 0.6, true)
   end
   local _, legend, total = Sources(r.xp or {})

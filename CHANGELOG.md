@@ -1,4 +1,9 @@
-# Meio Stats
+# Meio XP Meter
+
+## 1.1.1
+
+- Now called Meio XP Meter: the AddOns list, Settings and chat say MeioXPMeter. /stats and
+  everything it has recorded stay as they were
 
 ## 1.1.0
 
