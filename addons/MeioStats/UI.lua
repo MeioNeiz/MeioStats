@@ -1,15 +1,15 @@
--- The /stats window: Blizzard ButtonFrameTemplate, tabs Levelling / Zones / Loot luck /
--- Money.
+-- The /stats window: Blizzard ButtonFrameTemplate, tabs Levelling / Zones / Journey /
+-- Farming / Wealth / History / Loot luck / Money.
 -- Tabs build on first show and redraw only while visible (a 1 s ticker for live times, plus
 -- Dirty() from data changes).
 local _, K = ...
 local UI = {}
 K.UI = UI
 
-UI.W, UI.H = 640, 500
-local TABS = { "level", "zones", "loot", "money" }
-local TITLES = { level = "Levelling", zones = "Zones", loot = "Loot luck",
-  money = "Money" }
+UI.W, UI.H = 700, 500
+local TABS = { "level", "zones", "journey", "farm", "wealth", "history", "loot", "money" }
+local TITLES = { level = "Levelling", zones = "Zones", journey = "Journey", farm = "Farming",
+  wealth = "Wealth", history = "History", loot = "Loot luck", money = "Money" }
 UI.pages = {}   -- key -> { Build(page), Refresh(page) }, set by the UI*.lua files
 
 local frame, current, ticker
@@ -116,7 +116,8 @@ local function Create()
   frame:SetScript("OnShow", function(self)
     self:Raise()
     ticker = ticker or C_Timer.NewTicker(1, function()
-      if current == "level" or current == "zones" then Refresh() end
+      if current == "level" or current == "zones" or current == "journey" or current == "farm"
+      then Refresh() end
     end)
   end)
   frame:SetScript("OnHide", function()
@@ -134,8 +135,10 @@ function UI.Show(key)
 end
 
 local ALIASES = { level = "level", xp = "level", zones = "zones", zone = "zones",
-  runs = "zones", dungeons = "zones", loot = "loot", luck = "loot", money = "money",
-  gold = "money" }
+  runs = "zones", dungeons = "zones", journey = "journey", map = "journey", loot = "loot",
+  luck = "loot", money = "money", gold = "money", farming = "farm", wealth = "wealth",
+  worth = "wealth", value = "wealth", history = "history", log = "history",
+  trades = "history" }
 function UI.Tab(name) return ALIASES[name] end
 
 function UI.Toggle(key)

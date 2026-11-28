@@ -169,6 +169,7 @@ local function OnCombatXP(msg)
   rec.kills = (rec.kills or 0) + 1
   if session then session.kills = (session.kills or 0) + 1 end
   if K.Runs then K.Runs.Add("kills", 1) end
+  if K.Journey then K.Journey.Kill() end
   if K.Loot then K.Loot.KilledByName(name) end
 end
 

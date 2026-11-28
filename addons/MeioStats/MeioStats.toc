@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: MeioStats
-## Notes: XP and gold per hour, time to level, a row per level, dungeon runs and XP per zone, loot luck against drop rates. /stats
-## Version: 1.1.3
+## Notes: XP and gold per hour, time to level, a row per level, dungeon runs and XP per zone, your journey on the world map with replay, farming sessions, account value and gold history, loot luck against drop rates. /stats
+## Version: 1.2.0
 ## Category: Meio
 ## IconTexture: Interface\Icons\INV_Misc_PocketWatch_01
 ## AddonCompartmentFunc: MeioStats_OnAddonCompartmentClick
@@ -13,17 +13,27 @@
 ## OptionalDeps: QuestieDB, Questie, TradeSkillMaster, Meionomics
 # KafStatsCharDB: the name before 1.0.0, read once and moved over
 ## SavedVariablesPerCharacter: MeioStatsCharDB, KafStatsCharDB
+# MeioStatsDB: gold history, trades, worth, farms for every character
+## SavedVariables: MeioStatsDB
 
 Core.lua
 Level.lua
 Runs.lua
+Journey.lua
+Gold.lua
 QuestXP.lua
 Loot.lua
 Money.lua
 Widgets.lua
+Farm.lua
 Settings.lua
 UI.lua
 UILevel.lua
 UILoot.lua
 UIMoney.lua
 UIZones.lua
+UIJourney.lua
+UIFarm.lua
+UIWealth.lua
+UIHistory.lua
+JourneyMap.lua

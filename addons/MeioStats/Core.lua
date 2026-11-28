@@ -1,5 +1,6 @@
--- MeioStats: levelling (Level.lua), loot luck (Loot.lua), money (Money.lua), window
--- (UI*.lua). Public for other addons: MeioStats.Money.ItemTotals(itemID).
+-- MeioStats: levelling (Level.lua), journey (Journey*.lua), gold history and worth
+-- (Gold.lua), farming (Farm.lua), loot luck (Loot.lua), money (Money.lua), window (UI*.lua).
+-- Public for other addons: MeioStats.Money.ItemTotals(itemID).
 local addonName, K = ...
 MeioStats = K
 
@@ -90,6 +91,8 @@ K.OPTIONS = {
   questBar = { label = "quest XP band", default = false },
   questOpen = { label = "quests in progress", default = false },
   dingLine = { label = "level-up summary", default = true },
+  trail = { label = "trail on the world map", default = true },
+  heat = { label = "grind spots on the world map", default = true },
 }
 
 function K.Option(key)
@@ -101,6 +104,8 @@ end
 function K.SetOption(key, on)
   K.db[key] = on
   if K.QuestXP then K.QuestXP.Refresh() end
+  if K.JourneyMap then K.JourneyMap.Refresh() end
+  if K.UI then K.UI.Dirty("journey") end
 end
 
 local function Cmd(text) return "|cffffd100" .. text .. "|r" end
@@ -113,6 +118,18 @@ local HELP = {
   { "/stats", "open or close the window, on the last tab" },
   { "/stats level||xp", "levelling: played time per level, XP per hour, where XP came from" },
   { "/stats zones||runs", "zones: dungeon runs and XP per hour in each zone" },
+  { "/stats journey", "journey: how far you went and where you were at each level-up" },
+  { "/stats replay [level]", "replay your trail on the world map, from the start or a level" },
+  { "/stats trail on||off", function()
+    return "your trail, level-ups, deaths and dungeons on the world map" .. Now("trail")
+  end },
+  { "/stats heat on||off", function()
+    return "grind spots: faint red where you killed the most" .. Now("heat")
+  end },
+  { "/stats farm [start||stop]", "farming session: gold and items looted per hour" },
+  { "/stats farming", "farming: the farm going now and past farms to compare spots" },
+  { "/stats wealth", "wealth: account value day by day, where gold came from and went" },
+  { "/stats history", "history: trades, auctions, mail, vendor, quests and loot" },
   { "/stats loot||luck", "loot luck: quest drops against Questie's drop rates, all loot" },
   { "/stats money||gold", "money: sales, purchases and profit from TSM's ledger" },
   { "/stats questxp on||off", function()
@@ -125,11 +142,11 @@ local HELP = {
     return "level-up summary: time, kills and quests in chat at each level"
       .. Now("dingLine")
   end },
-  { "/stats reset", "put the window back in the middle of the screen" },
+  { "/stats reset", "put the window and the farming tracker back where they start" },
 }
 
 local function Help()
-  K.Print("levelling times, loot luck and money per item")
+  K.Print("levelling, your journey, farming, wealth and gold history, loot luck")
   for _, h in ipairs(HELP) do
     local text = h[2]
     if type(text) == "function" then text = text() end
@@ -141,7 +158,8 @@ end
 
 function K.ResetWindow()
   K.UI.ResetPosition()
-  K.Print("window moved back to the middle of the screen")
+  if K.Farm then K.Farm.ResetPosition() end
+  K.Print("window and farming tracker moved back")
 end
 
 -- on / off sets it, nothing flips it
@@ -169,6 +187,19 @@ local commands = {
   help = Help,
   questxp = QuestXPCmd,
   ding = function(rest) return OptionCmd("dingLine", rest:lower(), "ding " .. rest) end,
+  trail = function(rest) return OptionCmd("trail", rest:lower(), "trail " .. rest) end,
+  heat = function(rest) return OptionCmd("heat", rest:lower(), "heat " .. rest) end,
+  replay = function(rest) K.JourneyMap.Replay(tonumber(rest)) end,
+  farm = function(rest)
+    local word = rest:lower()
+    if word == "start" then K.Farm.Start()
+    elseif word == "stop" then K.Farm.Stop()
+    elseif word == "" then K.Farm.Toggle()
+    else
+      K.Print('unknown command "farm ' .. rest .. '"')
+      return Help()
+    end
+  end,
   ["?"] = Help,
   reset = K.ResetWindow,
   settings = function() K.OpenSettings() end,

@@ -83,6 +83,9 @@ local function Enter()
         gold = 0, deaths = 0 }
       table.insert(db.runs, run)
       while #db.runs > MAX_RUNS do table.remove(db.runs, 1) end
+      -- at the entrance: inside, the map has no position, so the last one outside
+      local m = K.Journey and K.Journey.Mark("run", name, lvl)
+      if m then m.t = run.start end
     end
     outside = nil
   elseif run and not outside then

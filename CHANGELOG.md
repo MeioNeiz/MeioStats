@@ -1,5 +1,20 @@
 # Meio Stats
 
+## 1.2.0
+
+- Your journey on the world map: a dotted trail where you've been, with where you levelled,
+  died and went into dungeons, and faint red squares where you killed the most. The bar at
+  the map's bottom left replays it (`/stats replay [level]`); `/stats trail` and
+  `/stats heat` turn each part on or off
+- Journey tab: how far you went on foot, mounted, by flight and as a ghost, the zones you
+  passed through and where you were at each level-up; click a level to replay from there
+- Farming: `/stats farm` starts a session with a small tracker of gold and item worth per
+  hour (AFK left out); the Farming tab compares past farms so you can pick the best spot
+- Wealth tab: your account's value day by day, and where your gold came from and went
+  (loot, quests, vendors, repairs, auction house, mail, trades, flights, training)
+- History tab: trades with who and what changed hands, auction sales and buys, mail,
+  vendor visits, quests and good loot, for all your characters
+
 ## 1.1.3
 
 - Back to the name Meio Stats: the AddOns list, Settings, chat and the window title say

@@ -18,7 +18,8 @@ local function Register()
   category, layout = Settings.RegisterVerticalLayoutCategory("MeioStats")
   if layout and CreateSettingsListSectionHeaderInitializer then
     layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("The /stats window",
-      "Levelling: played time per level, XP per hour and where it came from. Loot luck: quest"
+      "Levelling: played time per level, XP per hour and where it came from. Journey: how far"
+      .. " you went and where you levelled. Loot luck: quest"
       .. " drops against Questie's drop rates. Money: sales and profit from TSM's ledger."
       .. " Type /stats help for every command."))
   end
@@ -42,6 +43,15 @@ local function Register()
   Toggle("questOpen", "Quests in progress",
     "A fainter band past the gold one adds the quests you haven't finished yet"
     .. " (/stats questxp progress on||off).")
+  if layout and CreateSettingsListSectionHeaderInitializer then
+    layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("World map",
+      "Your journey since MeioStats started recording. The bar at the map's bottom left"
+      .. " replays it."))
+  end
+  Toggle("trail", "Your trail", "A dotted line where you've been, with where you levelled,"
+    .. " died and went into dungeons (/stats trail on||off).")
+  Toggle("heat", "Grind spots", "Faint red squares where you killed the most, on zone maps"
+    .. " (/stats heat on||off).")
   if layout and CreateSettingsListSectionHeaderInitializer then
     layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Chat",
       "What MeioStats says in chat."))
